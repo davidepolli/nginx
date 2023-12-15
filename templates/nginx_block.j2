@@ -1,0 +1,12 @@
+stream {
+  upstream rancher_servers_https {
+    least_conn;
+    {% for upstream_server in nginx_upstream_servers %}
+    server {{ upstream_server }};
+    {% endfor %}
+  }
+  server {
+    listen 443;
+    proxy_pass rancher_servers_https;
+  }
+}

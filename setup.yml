@@ -1,0 +1,42 @@
+---
+
+
+
+- name: Install and Configure Nginx
+  hosts: nginx_servers
+  become: true
+  vars_files:
+    - "{{ playbook_dir }}/vars/variables.yaml"
+
+  tasks:
+    - name: Update system's repository
+      apt:
+        update_cache: yes
+
+    - name: Install Nginx
+      apt:
+        name: nginx
+        state: present
+
+    - name: Add custom configuration block to nginx.conf
+      ansible.builtin.blockinfile:
+        path: /etc/nginx/nginx.conf
+        insertafter: "EOF"
+        marker: "# {mark} RANCHER INGRESS #{mark}"
+        block: "{{ lookup('template', '{{ playbook_dir }}/templates/nginx_block.j2') }}"
+        state: present
+      #notify:
+      #  - Reload Nginx
+      #tags:
+      #  - nginx_config
+
+    - name: Reload Nginx
+      service:
+        name: nginx
+        state: reloaded
+
+  #handlers:
+  #  - name: Reload Nginx
+  #    service:
+  #      name: nginx
+  #      state: reloaded
